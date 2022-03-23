@@ -1,40 +1,58 @@
 " Avoid headache
 set nocompatible
+syntax on "Turn on syntax highlighting
+filetype plugin indent on "Detection, plugins and indenting
 
 call plug#begin('~/.vim/plugged')
     Plug 'neoclide/coc.nvim', {'branch': 'release'} " Autocompletion
     Plug 'jiangmiao/auto-pairs' " Complete brackets
     Plug 'airblade/vim-gitgutter' " Integrate git
+    Plug 'rust-lang/rust.vim' " Autocompletion for rust
     Plug 'preservim/nerdtree' " File explorer
     Plug 'tpope/vim-fugitive' " Show diff
-    Plug 'ryanoasis/vim-devicons' " Pretty icons in file explorer
-    Plug 'Xuyuanp/nerdtree-git-plugin' " Git changes in nerdtree
-    Plug 'tiagofumo/vim-nerdtree-syntax-highlight' " Add syntax for nerdtree
+    "Plug 'ryanoasis/vim-devicons' " Pretty icons in file explorer
+    "Plug 'Xuyuanp/nerdtree-git-plugin' " Git changes in nerdtree
+    "Plug 'tiagofumo/vim-nerdtree-syntax-highlight' " Add syntax for nerdtree
     Plug 'sheerun/vim-polyglot' " Language packs
     Plug 'morhetz/gruvbox' " Color theme
     Plug 'itchyny/lightline.vim' " Line with info
-    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Quick file finder
-    Plug 'junegunn/fzf.vim' " Quick file finder
+    "Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Quick file finder
+    "Plug 'junegunn/fzf.vim' " Quick file finder
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-telescope/telescope.nvim'
     Plug 'Yggdroot/indentLine' " Show connecting vertical indent lines
+    Plug 'mg979/vim-visual-multi', {'branch': 'master'} " Multi-line cursor
     Plug 'heavenshell/vim-jsdoc', { 
         \ 'for': ['javascript', 'javascript.jsx','typescript'],
         \ 'do': 'make install'
     \} " Generate jsdoc
 call plug#end()
 
-syntax on "Turn on syntax highlighting
-filetype plugin indent on "Detection, plugins and indenting
-colorscheme gruvbox "Set the best color scheme in the world
+
+" Exit telescope on first escape
+lua << EOS
+local actions = require("telescope.actions")
+require("telescope").setup({
+    defaults = {
+        mappings = {
+            i = {
+                ["<esc>"] = actions.close,
+            },
+        },
+    },
+})
+EOS
 
 set noerrorbells
-set tabstop=4
 set softtabstop=4
 set shiftwidth=4
 set ruler
 set expandtab
 set nohlsearch
-set smartindent
-set nu
+"set smartindent
+set number
+set relativenumber
+set lazyredraw
 set nowrap
 set smartcase
 set smarttab
@@ -53,47 +71,38 @@ set cul
 set encoding=UTF-8
 set colorcolumn=120
 set hidden
-set relativenumber
 set termguicolors
 set scrolloff=8
-set signcolumn=yes
 set background=dark
-set laststatus=2 
 set noshowmode
-set sc
-set sol
-set foldtext=gitgutter#fold#foldtext()
 set clipboard=unnamedplus
+
+colorscheme gruvbox "Set the best color scheme in the world
 
 " Highlight vertical column
 highlight ColorColumn ctermbg=0 guibg=#689d6a
 
+set signcolumn=yes
 " Hide colored spaces left to numbers
 highlight! link SignColumn LineNr
 
+" Use <c-space> to trigger completion.
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
+else
+  inoremap <silent><expr> <c-@> coc#refresh()
+endif
+
+" Enable JsDoc command
+command! -register JsDoc call jsdoc#insert()
+
 " Coc extensions
 let g:coc_global_extensions = [
-            \ 'coc-css',
-            \ 'coc-browser',
             \ 'coc-html',
             \ 'coc-json',
-            \ 'coc-prettier',
-            \ 'coc-cssmodules',
             \ 'coc-emmet',
-            \ 'coc-eslint',
-            \ 'coc-html',
-            \ 'coc-htmldjango',
-            \ 'coc-htmlhint',
-            \ 'coc-html-css-support',
-            \ 'coc-stylelint',
-            \ 'coc-yaml',
             \ 'coc-vetur',
             \ 'coc-tsserver']
-
-" Resolve django html bug
-let g:coc_filetype_map = {
-    \ 'htmldjango': 'html',
-    \ }
 
 " Lightline config
 let g:lightline = {
@@ -119,31 +128,46 @@ let g:gitgutter_highlight_linenrs=1
 let g:NERDTreeShowHidden=1
 let g:NERDTreeMinimalUI=1
 let g:NERDTreeWinSize=40
+let g:NERDTreeIgnore = ['node_modules']
+
+" Hide multi-cursor warning conflict with autopairs
+let g:VM_show_warnings = 0
+
+" Set preprocessor
+let g:vue_pre_processors = ['scss']
 
 " Set leader to space 
 let mapleader=" "
 
+" Jump to existing window if possible
+let g:fzf_buffers_jump = 1
+
 " Remaps
 
 " Toggle nerd tree 
-nnoremap <silent><C-n> :NERDTreeToggle<CR>
+nnoremap <silent><leader>c :NERDTreeToggle<CR>
 
 " Show file explorer according to git files
-nnoremap <silent><C-f> :GFiles --cached --others --exclude-standard<CR>
+"nnoremap <silent><C-f> :GFiles --cached --others --exclude-standard<CR>
+nnoremap <silent><C-f> :Telescope git_files<cr>
+
+" Show only changed files
+"nnoremap <silent><C-m> :GF?<CR>
 
 " Show file eplorer according to string match
-nnoremap <silent><C-p> :Rg<CR>
+"nnoremap <silent><C-p> :Rg<CR>
+nnoremap <silent><C-p> :Telescope live_grep<CR>
 
 " Show buffers
-nnoremap <silent><C-b> :Buffers<CR>
+nnoremap <silent><C-b> :Telescope buffers<CR>
 
 " Jump between windows easily
 nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
 
 " Toggle between tabs
-nnoremap <silent><C-Left> :tabprevious<CR>
-nnoremap <silent><C-Right> :tabnext<CR>
+nnoremap <silent><leader>n :tabprevious<CR>
+nnoremap <silent><leader>m :tabnext<CR>
 
 nnoremap <C-j> :m .+1<CR>==
 nnoremap <C-k> :m .-2<CR>==
@@ -157,12 +181,9 @@ nmap gn <Plug>(GitGutterNextHunk)
 nmap gp <Plug>(GitGutterPrevHunk)
 
 " Git merge conflicts
-nnoremap <silent><leader>gs :Gvdiffsplit!<CR>
+nnoremap <silent><leader>gd :Gvdiffsplit!<CR>
 nnoremap <silent><leader>gh :diffget //2<CR>
 nnoremap <silent><leader>gl :diffget //3<CR> 
-
-" Fix scss problems
-" autocmd FileType scss setl iskeyword+=@-@
 
 " Exit Vim if NERDTree is the only window left
 autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() |
