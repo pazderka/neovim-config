@@ -1,5 +1,4 @@
-" Avoid headache
-set nocompatible
+set nocompatible "Avoid headache
 syntax on "Turn on syntax highlighting
 filetype plugin indent on "Detection, plugins and indenting
 
@@ -7,27 +6,23 @@ call plug#begin('~/.vim/plugged')
     Plug 'neoclide/coc.nvim', {'branch': 'release'} " Autocompletion
     Plug 'jiangmiao/auto-pairs' " Complete brackets
     Plug 'airblade/vim-gitgutter' " Integrate git
-    Plug 'rust-lang/rust.vim' " Autocompletion for rust
     Plug 'preservim/nerdtree' " File explorer
     Plug 'tpope/vim-fugitive' " Show diff
-    "Plug 'ryanoasis/vim-devicons' " Pretty icons in file explorer
-    "Plug 'Xuyuanp/nerdtree-git-plugin' " Git changes in nerdtree
-    "Plug 'tiagofumo/vim-nerdtree-syntax-highlight' " Add syntax for nerdtree
     Plug 'sheerun/vim-polyglot' " Language packs
-    Plug 'morhetz/gruvbox' " Color theme
-    Plug 'itchyny/lightline.vim' " Line with info
-    "Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Quick file finder
-    "Plug 'junegunn/fzf.vim' " Quick file finder
+    Plug 'sainnhe/gruvbox-material' " Color scheme
+    Plug 'nvim-lualine/lualine.nvim'
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " Better syntax highlight
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'Yggdroot/indentLine' " Show connecting vertical indent lines
     Plug 'mg979/vim-visual-multi', {'branch': 'master'} " Multi-line cursor
+    Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' } " Override native sorter
+    Plug 'kyazdani42/nvim-web-devicons', " Show nice icons
     Plug 'heavenshell/vim-jsdoc', { 
         \ 'for': ['javascript', 'javascript.jsx','typescript'],
         \ 'do': 'make install'
-    \} " Generate jsdoc
+    \}
 call plug#end()
-
 
 " Exit telescope on first escape
 lua << EOS
@@ -40,7 +35,70 @@ require("telescope").setup({
             },
         },
     },
+    extensions = {
+        fzf = {
+            fuzzy = true,
+            override_generic_sorter = true,
+            override_file_sorter = true,
+            case_mode = "smart_case",
+        }
+    }
 })
+require("telescope").load_extension("fzf")
+
+
+require("nvim-treesitter.configs").setup {
+    ensure_installed = { "javascript", "vue", "python", "json", "css", "scss", "html", "jsdoc", "lua", "toml", "yaml" },
+    sync_install = false,
+    auto_install = true,
+    highlight = {
+        enable = true,
+        additional_vim_regex_highlighting = false,
+    }
+}
+
+require('lualine').setup {
+    options = {
+    icons_enabled = true,
+    theme = 'gruvbox-material',
+    component_separators = { left = '', right = ''},
+    section_separators = { left = '', right = ''},
+    disabled_filetypes = {
+      statusline = {},
+      winbar = {},
+    },
+    ignore_focus = {},
+    always_divide_middle = true,
+    globalstatus = false,
+    refresh = {
+      statusline = 1000,
+      tabline = 1000,
+      winbar = 1000,
+    }
+    },
+    sections = {
+        lualine_a = {'mode'},
+        lualine_b = {'branch', 'diff', 'diagnostics'},
+        lualine_c = {'filename'},
+        lualine_x = {'encoding', 'fileformat', 'filetype'},
+        lualine_y = {'progress'},
+        lualine_z = {'location'}
+    },
+
+    inactive_sections = {
+        lualine_a = {},
+        lualine_b = {},
+        lualine_c = {'filename'},
+        lualine_x = {'location'},
+        lualine_y = {},
+        lualine_z = {}
+    },
+    tabline = {},
+    winbar = {},
+    inactive_winbar = {},
+    extensions = {}
+}
+
 EOS
 
 set noerrorbells
@@ -49,7 +107,7 @@ set shiftwidth=4
 set ruler
 set expandtab
 set nohlsearch
-"set smartindent
+set smartindent
 set number
 set relativenumber
 set lazyredraw
@@ -77,7 +135,12 @@ set background=dark
 set noshowmode
 set clipboard=unnamedplus
 
-colorscheme gruvbox "Set the best color scheme in the world
+let g:gruvbox_material_background = 'hard'
+let g:gruvbox_material_better_performance = 1
+let g:gruvbox_material_enable_bold = 0
+let g:gruvbox_material_visual = 'reverse'
+let g:gruvbox_material_diagnostic_line_highlight = 1
+colorscheme gruvbox-material "Set the best color scheme in the world
 
 " Highlight vertical column
 highlight ColorColumn ctermbg=0 guibg=#689d6a
@@ -102,24 +165,8 @@ let g:coc_global_extensions = [
             \ 'coc-json',
             \ 'coc-emmet',
             \ 'coc-vetur',
+            \ 'coc-pyright',
             \ 'coc-tsserver']
-
-" Lightline config
-let g:lightline = {
-      \ 'colorscheme': 'one',
-      \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'gitbranch', 'readonly', 'relativepath', 'modified' ] ]
-      \ },
-      \ 'component_function': {
-      \   'gitbranch': 'FugitiveHead'
-      \ },
-      \ }
-
-" Tweak tabs to use lightline theme colors
-let s:palette = g:lightline#colorscheme#one#palette
-let s:palette.tabline.tabsel = [ [ '#000000', '#98c379', 255, 255, 'bold' ] ]
-unlet s:palette
 
 " Show gitgutter symbols colored bg
 let g:gitgutter_highlight_linenrs=1
@@ -142,20 +189,13 @@ let mapleader=" "
 " Jump to existing window if possible
 let g:fzf_buffers_jump = 1
 
-" Remaps
-
 " Toggle nerd tree 
 nnoremap <silent><leader>c :NERDTreeToggle<CR>
 
 " Show file explorer according to git files
-"nnoremap <silent><C-f> :GFiles --cached --others --exclude-standard<CR>
-nnoremap <silent><C-f> :Telescope git_files<cr>
-
-" Show only changed files
-"nnoremap <silent><C-m> :GF?<CR>
+nnoremap <silent><C-f> :Telescope git_files show_untracked=true<cr>
 
 " Show file eplorer according to string match
-"nnoremap <silent><C-p> :Rg<CR>
 nnoremap <silent><C-p> :Telescope live_grep<CR>
 
 " Show buffers
@@ -184,6 +224,9 @@ nmap gp <Plug>(GitGutterPrevHunk)
 nnoremap <silent><leader>gd :Gvdiffsplit!<CR>
 nnoremap <silent><leader>gh :diffget //2<CR>
 nnoremap <silent><leader>gl :diffget //3<CR> 
+
+" Select completion by enter
+inoremap <expr> <CR> coc#pum#visible() ? coc#_select_confirm() : "\<CR>"
 
 " Exit Vim if NERDTree is the only window left
 autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() |
