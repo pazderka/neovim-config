@@ -24,6 +24,7 @@ call plug#begin('~/.vim/plugged')
     \}
 call plug#end()
 
+
 " Exit telescope on first escape
 lua << EOS
 local actions = require("telescope.actions")
@@ -79,7 +80,7 @@ require('lualine').setup {
     sections = {
         lualine_a = {'mode'},
         lualine_b = {'branch', 'diff', 'diagnostics'},
-        lualine_c = {'filename'},
+        lualine_c = {{'filename', path = 1}},
         lualine_x = {'encoding', 'fileformat', 'filetype'},
         lualine_y = {'progress'},
         lualine_z = {'location'}
@@ -135,6 +136,9 @@ set background=dark
 set noshowmode
 set clipboard=unnamedplus
 
+" Get rid of hiding symbols
+let g:indentLine_conceallevel = 0
+
 let g:gruvbox_material_background = 'hard'
 let g:gruvbox_material_better_performance = 1
 let g:gruvbox_material_enable_bold = 0
@@ -164,10 +168,8 @@ let g:coc_global_extensions = [
             \ 'coc-html',
             \ 'coc-json',
             \ 'coc-emmet',
-            \ 'coc-vetur',
             \ 'coc-pyright',
             \ 'coc-tsserver']
-
 " Show gitgutter symbols colored bg
 let g:gitgutter_highlight_linenrs=1
 
